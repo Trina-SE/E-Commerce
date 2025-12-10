@@ -22,7 +22,8 @@ export default function Home() {
   const fetchCategories = async () => {
     try {
       const response = await productService.getCategories();
-      setCategories(response.data.categories || ['Electronics', 'Bags', 'Accessories', 'Home & Kitchen']);
+      const fetchedCategories = response.data.categories;
+      setCategories(fetchedCategories && fetchedCategories.length > 0 ? fetchedCategories : ['Electronics', 'Bags', 'Accessories', 'Home & Kitchen', 'Clothing', 'Sports']);
     } catch (err) {
       console.error('Error fetching categories:', err);
       // Set default categories if API fails
