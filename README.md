@@ -4,41 +4,22 @@
 - cd E-Commerce
 - Create .env file, paste the txt here:
 
-# MongoDB Connection
 MONGODB_URI=mongodb+srv://bsse1313_db_user:ysBLhzRzTCS3Npnh@cluster0.tajwbzc.mongodb.net/?appName=Cluster0
-
-# JWT
 JWT_SECRET=ecommerce_jwt_secret_key_2025_change_in_production
-
-# Gateway
 GATEWAY_PORT=5000
 GATEWAY_HOST=localhost
-
-# Auth Service
 AUTH_SERVICE_PORT=5001
 AUTH_SERVICE_HOST=localhost
-
-# Products Service
 PRODUCTS_SERVICE_PORT=5002
 PRODUCTS_SERVICE_HOST=localhost
-
-# Orders Service
 ORDERS_SERVICE_PORT=5003
 ORDERS_SERVICE_HOST=localhost
-
-# Payments Service
 PAYMENTS_SERVICE_PORT=5004
 PAYMENTS_SERVICE_HOST=localhost
-
-# Users Service
 USERS_SERVICE_PORT=5005
 USERS_SERVICE_HOST=localhost
-
-# Frontend
 REACT_APP_API_URL=http://localhost:5000/api
 VITE_API_URL=http://localhost:5000/api
-
-# Stripe (optional for payments)
 STRIPE_SECRET_KEY=sk_test_your_key_here
 STRIPE_PUBLIC_KEY=pk_test_your_key_here
 
@@ -62,6 +43,7 @@ cd services/users && npm run dev
 
 # Finally, start frontend in its folder
 cd frontend
+npm install -D @tailwindcss/postcss tailwindcss postcss autoprefixer  
 npm run dev
 ```
 
