@@ -3,7 +3,7 @@
 - Clone the repo, install dependencies, then start backend services and frontend locally.
 - cd E-Commerce
 - Create .env file, paste the txt here:
-
+```powershell
 MONGODB_URI=mongodb+srv://bsse1313_db_user:ysBLhzRzTCS3Npnh@cluster0.tajwbzc.mongodb.net/?appName=Cluster0
 JWT_SECRET=ecommerce_jwt_secret_key_2025_change_in_production
 GATEWAY_PORT=5000
@@ -22,7 +22,7 @@ REACT_APP_API_URL=http://localhost:5000/api
 VITE_API_URL=http://localhost:5000/api
 STRIPE_SECRET_KEY=sk_test_your_key_here
 STRIPE_PUBLIC_KEY=pk_test_your_key_here
-
+```
 - Commands to run (PowerShell / Windows):
 
 ```powershell
