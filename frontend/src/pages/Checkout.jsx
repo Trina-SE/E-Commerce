@@ -1,38 +1,27 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore, useCartStore } from '../store/store';
-import { orderService, paymentService } from '../services/api';
 
 export default function Checkout() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const { items, clearCart } = useCartStore();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    shippingAddress: {
-      street: '',
-      city: '',
-      state: '',
-      zipCode: '',
-      country: '',
-      phone: '',
-    },
-    paymentMethod: 'card',
-    cardDetails: {
-      number: '',
-      expiry: '',
-      cvc: '',
-    },
-  });
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Please log in to checkout</h2>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--color-bg-light)' }}>
+        <div className="empty-state">
+          <div className="empty-state-icon">🔒</div>
+          <h2 className="text-3xl font-bold text-neutral mb-2">Please log in to checkout</h2>
+          <p className="text-neutral-light mb-6">You need to be logged in to place an order</p>
           <button
             onClick={() => navigate('/login')}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            className="btn btn-primary"
+            style={{ padding: '0.75rem 2rem' }}
           >
             Go to Login
           </button>
@@ -43,12 +32,15 @@ export default function Checkout() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Your cart is empty</h2>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--color-bg-light)' }}>
+        <div className="empty-state">
+          <div className="empty-state-icon">🛒</div>
+          <h2 className="text-3xl font-bold text-neutral mb-2">Your cart is empty</h2>
+          <p className="text-neutral-light mb-6">Add some products to continue</p>
           <button
             onClick={() => navigate('/')}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            className="btn btn-primary"
+            style={{ padding: '0.75rem 2rem' }}
           >
             Continue Shopping
           </button>
@@ -59,315 +51,162 @@ export default function Checkout() {
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const tax = subtotal * 0.1;
-  const shippingCost = 10;
-  const totalAmount = subtotal + tax + shippingCost;
+  const shipping = 10;
+  const total = subtotal + tax + shipping;
 
   const handleCheckout = async () => {
-    if (
-      !formData.shippingAddress.street ||
-      !formData.shippingAddress.city ||
-      !formData.shippingAddress.zipCode
-    ) {
-      alert('Please fill in all shipping address fields');
-      return;
-    }
-
-    if (
-      !formData.cardDetails.number ||
-      !formData.cardDetails.expiry ||
-      !formData.cardDetails.cvc
-    ) {
-      alert('Please fill in all payment details');
+    if (!name || !phone || !address) {
+      alert('⚠️ Please fill in all fields');
       return;
     }
 
     setLoading(true);
 
+    // Create order object
+    const order = {
+      id: 'ORD-' + Date.now(),
+      userId: user.id,
+      userName: name,
+      phone: phone,
+      address: address,
+      items: items,
+      subtotal: subtotal,
+      tax: tax,
+      shipping: shipping,
+      total: total,
+      status: 'Confirmed',
+      date: new Date().toISOString(),
+    };
+
+    // Save order to localStorage
     try {
-      // Create order
-      const orderResponse = await orderService.create({
-        userId: user.id,
-        items,
-        shippingAddress: formData.shippingAddress,
-        paymentMethod: formData.paymentMethod,
-        subtotal,
-        tax,
-        shippingCost,
-        totalAmount,
-      });
-
-      const orderId = orderResponse.data.order._id;
-
-      // Process payment
-      await paymentService.process({
-        orderId,
-        userId: user.id,
-        amount: totalAmount,
-        paymentMethod: formData.paymentMethod,
-        cardDetails: {
-          lastFour: formData.cardDetails.number.slice(-4),
-          brand: 'visa',
-        },
-      });
-
-      // Clear cart and redirect
-      clearCart();
-      alert('Order placed successfully!');
-      navigate(`/orders`);
+      const existingOrders = localStorage.getItem('orders');
+      const orders = existingOrders ? JSON.parse(existingOrders) : [];
+      orders.push(order);
+      localStorage.setItem('orders', JSON.stringify(orders));
     } catch (error) {
-      console.error('Checkout error:', error);
-      alert('Failed to process order. Please try again.');
-    } finally {
-      setLoading(false);
+      console.error('Error saving order:', error);
     }
+
+    // Simulate order processing
+    setTimeout(() => {
+      clearCart();
+      alert('✅ Order placed successfully!');
+      navigate('/orders');
+      setLoading(false);
+    }, 1000);
   };
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--color-bg)', padding: '3rem 1rem' }}>
-      <div className="container">
-        <h1 className="text-3xl font-bold text-neutral mb-8">Checkout</h1>
+    <div className="min-h-screen" style={{ background: 'var(--color-bg-light)', paddingTop: '3rem', paddingBottom: '3rem' }}>
+      <div className="container" style={{ maxWidth: '800px' }}>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: '800', fontFamily: 'Poppins, sans-serif', color: 'var(--color-neutral)', marginBottom: '2rem', textAlign: 'center' }}>
+          Checkout
+        </h1>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.25rem' }} className="">
-          {/* Checkout Form */}
-          <div style={{ gridColumn: '1 / -1' }}>
-            <div className="card" style={{ padding: '1rem' }}>
-              <h2 className="text-xl font-bold text-neutral mb-4">Shipping Address</h2>
-              <div style={{ display: 'grid', gap: '0.75rem' }}>
-                <input
-                  type="text"
-                  placeholder="Street Address"
-                  value={formData.shippingAddress.street}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      shippingAddress: {
-                        ...formData.shippingAddress,
-                        street: e.target.value,
-                      },
-                    })
-                  }
-                />
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                  <input
-                    type="text"
-                    placeholder="City"
-                    value={formData.shippingAddress.city}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        shippingAddress: {
-                          ...formData.shippingAddress,
-                          city: e.target.value,
-                        },
-                      })
-                    }
-                  />
-                  <input
-                    type="text"
-                    placeholder="State"
-                    value={formData.shippingAddress.state}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        shippingAddress: {
-                          ...formData.shippingAddress,
-                          state: e.target.value,
-                        },
-                      })
-                    }
-                  />
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                  <input
-                    type="text"
-                    placeholder="Zip Code"
-                    value={formData.shippingAddress.zipCode}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        shippingAddress: {
-                          ...formData.shippingAddress,
-                          zipCode: e.target.value,
-                        },
-                      })
-                    }
-                  />
-                  <input
-                    type="text"
-                    placeholder="Country"
-                    value={formData.shippingAddress.country}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        shippingAddress: {
-                          ...formData.shippingAddress,
-                          country: e.target.value,
-                        },
-                      })
-                    }
-                  />
-                </div>
-                <input
-                  type="tel"
-                  placeholder="Phone"
-                  value={formData.shippingAddress.phone}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      shippingAddress: {
-                        ...formData.shippingAddress,
-                        phone: e.target.value,
-                      },
-                    })
-                  }
-                />
-              </div>
-            </div>
-
-            {/* Payment Method */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Payment Method</h2>
-              <div className="space-y-4">
-                <div className="flex gap-4">
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="card"
-                      checked={formData.paymentMethod === 'card'}
-                      onChange={(e) =>
-                        setFormData({ ...formData, paymentMethod: e.target.value })
-                      }
-                      className="mr-2"
-                    />
-                    Credit/Debit Card
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="paypal"
-                      checked={formData.paymentMethod === 'paypal'}
-                      onChange={(e) =>
-                        setFormData({ ...formData, paymentMethod: e.target.value })
-                      }
-                      className="mr-2"
-                    />
-                    PayPal
-                  </label>
-                </div>
-
-                {formData.paymentMethod === 'card' && (
-                  <div className="space-y-4 mt-4">
-                    <input
-                      type="text"
-                      placeholder="Card Number (e.g., 4242 4242 4242 4242)"
-                      value={formData.cardDetails.number}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          cardDetails: {
-                            ...formData.cardDetails,
-                            number: e.target.value,
-                          },
-                        })
-                      }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                      maxLength="19"
-                    />
-                    <div className="grid grid-cols-2 gap-4">
-                      <input
-                        type="text"
-                        placeholder="MM/YY"
-                        value={formData.cardDetails.expiry}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            cardDetails: {
-                              ...formData.cardDetails,
-                              expiry: e.target.value,
-                            },
-                          })
-                        }
-                        className="px-4 py-2 border border-gray-300 rounded-lg"
-                        maxLength="5"
-                      />
-                      <input
-                        type="text"
-                        placeholder="CVC"
-                        value={formData.cardDetails.cvc}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            cardDetails: {
-                              ...formData.cardDetails,
-                              cvc: e.target.value,
-                            },
-                          })
-                        }
-                        className="px-4 py-2 border border-gray-300 rounded-lg"
-                        maxLength="3"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Order Summary */}
-          <div className="card" style={{ padding: '1rem' }}>
-            <h2 className="text-xl font-bold text-neutral mb-4">Order Summary</h2>
-
-            <div className="space-y-3 mb-4 pb-4 border-b">
+        <div style={{ display: 'grid', gap: '2rem' }}>
+          {/* Order Items */}
+          <div className="card" style={{ padding: '2rem' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--color-neutral)', marginBottom: '1.5rem' }}>
+              Your Order
+            </h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '2px solid var(--color-border)' }}>
               {items.map((item) => (
-                <div key={item.productId} className="flex justify-between text-sm">
-                  <span>
-                    {item.productName} x {item.quantity}
-                  </span>
-                  <span className="font-semibold">${(item.price * item.quantity).toFixed(2)}</span>
+                <div key={item.productId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <p style={{ fontWeight: '600', color: 'var(--color-neutral)' }}>{item.productName}</p>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--color-neutral-light)' }}>Qty: {item.quantity}</p>
+                  </div>
+                  <p style={{ fontWeight: '700', fontSize: '1.1rem', color: 'var(--color-primary)' }}>
+                    ${(item.price * item.quantity).toFixed(2)}
+                  </p>
                 </div>
               ))}
             </div>
 
-            <div className="space-y-2 mb-4">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Subtotal</span>
-                <span className="font-semibold">${subtotal.toFixed(2)}</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--color-neutral-light)' }}>Subtotal</span>
+                <span style={{ fontWeight: '600' }}>${subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Tax (10%)</span>
-                <span className="font-semibold">${tax.toFixed(2)}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--color-neutral-light)' }}>Tax (10%)</span>
+                <span style={{ fontWeight: '600' }}>${tax.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Shipping</span>
-                <span className="font-semibold">${shippingCost.toFixed(2)}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--color-neutral-light)' }}>Shipping</span>
+                <span style={{ fontWeight: '600' }}>${shipping.toFixed(2)}</span>
+              </div>
+              <div style={{ borderTop: '2px solid var(--color-border)', paddingTop: '1rem', marginTop: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--color-neutral)' }}>Total</span>
+                <span style={{ fontSize: '2rem', fontWeight: '800', background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+                  ${total.toFixed(2)}
+                </span>
               </div>
             </div>
+          </div>
 
-            <div className="border-t pt-4 mb-6">
-              <div className="flex justify-between">
-                <span className="font-bold text-gray-800">Total</span>
-                <span className="font-bold text-2xl text-blue-600">${totalAmount.toFixed(2)}</span>
+          {/* Simple Form */}
+          <div className="card" style={{ padding: '2rem' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--color-neutral)', marginBottom: '1.5rem' }}>
+              Delivery Details
+            </h2>
+            <form onSubmit={(e) => { e.preventDefault(); handleCheckout(); }} style={{ display: 'grid', gap: '1.25rem' }}>
+              <div>
+                <label>Full Name</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Enter your name"
+                  required
+                  style={{ padding: '0.85rem 1rem' }}
+                />
               </div>
-            </div>
 
-            <button
-              onClick={handleCheckout}
-              disabled={loading}
-              className="btn btn-primary"
-              style={{ width: '100%', padding: '0.8rem' }}
-            >
-              {loading ? 'Processing...' : 'Place Order'}
-            </button>
+              <div>
+                <label>Phone Number</label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Enter your phone number"
+                  required
+                  style={{ padding: '0.85rem 1rem' }}
+                />
+              </div>
 
-            <button
-              onClick={() => navigate('/cart')}
-              className="btn btn-ghost"
-              style={{ width: '100%', padding: '0.75rem', marginTop: '0.5rem' }}
-            >
-              Back to Cart
-            </button>
+              <div>
+                <label>Delivery Address</label>
+                <textarea
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Enter your complete address"
+                  required
+                  rows="4"
+                  style={{ padding: '0.85rem 1rem', resize: 'vertical' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="btn btn-primary"
+                  style={{ flex: 1, padding: '0.9rem', fontSize: '1rem' }}
+                >
+                  {loading ? '🔄 Processing...' : '✅ Place Order'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/cart')}
+                  className="btn btn-ghost"
+                  style={{ padding: '0.9rem 1.5rem' }}
+                >
+                  Back
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>

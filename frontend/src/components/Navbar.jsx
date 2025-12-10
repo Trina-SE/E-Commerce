@@ -11,36 +11,35 @@ export default function Navbar() {
   return (
     <nav className="site-nav">
       <div className="nav-inner">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <Link to="/" className="nav-logo">EcomStore</Link>
-        </div>
+        <Link to="/" className="nav-logo">🛍️ EcomStore</Link>
 
         <div className="nav-search">
-          <input type="text" placeholder="Search products, brands or categories" />
+          <input type="text" placeholder="Search products, brands, or categories..." />
         </div>
 
         <div className="nav-actions">
           {token ? (
             <>
-              <Link to="/orders" style={{ color: 'var(--color-neutral)' }}>Orders</Link>
-              <Link to="/profile" style={{ color: 'var(--color-neutral)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Link to="/orders">📦 Orders</Link>
+              <Link to="/profile" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <FiUser /> {user?.name}
               </Link>
-              <button onClick={logout} className="btn btn-ghost">Logout</button>
+              <button onClick={logout} className="btn btn-ghost" style={{ padding: '0.5rem 1rem' }}>
+                <FiLogOut size={16} />
+                Logout
+              </button>
             </>
           ) : (
             <>
-              <Link to="/login" style={{ color: 'var(--color-neutral)' }}>Login</Link>
-              <Link to="/register" className="btn btn-primary">Register</Link>
+              <Link to="/login" className="btn btn-ghost" style={{ padding: '0.5rem 1rem' }}>Login</Link>
+              <Link to="/register" className="btn btn-primary" style={{ padding: '0.5rem 1.25rem' }}>Get Started</Link>
             </>
           )}
 
-          <Link to="/cart" style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
-            <FiShoppingCart size={20} />
+          <Link to="/cart" style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', padding: '0.5rem' }}>
+            <FiShoppingCart size={22} style={{ color: 'var(--color-neutral)' }} />
             {items.length > 0 && (
-              <span style={{ position: 'absolute', top: -8, right: -8, background: '#ef4444', color: '#fff', width: 20, height: 20, borderRadius: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>
-                {items.length}
-              </span>
+              <span className="cart-badge">{items.length}</span>
             )}
           </Link>
         </div>

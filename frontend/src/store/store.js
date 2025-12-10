@@ -1,7 +1,16 @@
 import { create } from 'zustand';
 
+// Load demo user if exists
+const loadDemoUser = () => {
+  const storedUser = localStorage.getItem('demoUser');
+  if (storedUser) {
+    return JSON.parse(storedUser);
+  }
+  return null;
+};
+
 export const useAuthStore = create((set) => ({
-  user: null,
+  user: loadDemoUser(),
   token: localStorage.getItem('token') || null,
   isLoading: false,
   error: null,
@@ -19,6 +28,7 @@ export const useAuthStore = create((set) => ({
   setError: (error) => set({ error }),
   logout: () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('demoUser');
     set({ user: null, token: null });
   },
 }));
