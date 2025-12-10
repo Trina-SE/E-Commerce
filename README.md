@@ -1,8 +1,8 @@
-# How to run (minimal)
+# How to run
 
-Clone the repo, install dependencies, then start backend services and frontend locally.
+- Clone the repo, install dependencies, then start backend services and frontend locally.
 
-Commands to run (PowerShell / Windows):
+- Commands to run (PowerShell / Windows):
 
 ```powershell
 cd 'C:\Users\sulta\Documents\E-Commerce'
@@ -14,14 +14,14 @@ cd gateway
 npm run dev
 
 # In separate terminals, start each service (auth, products, orders, payments, users):
-cd ..\services\auth && npm run dev
-cd ..\services\products && npm run dev
-cd ..\services\orders && npm run dev
-cd ..\services\payments && npm run dev
-cd ..\services\users && npm run dev
+cd services/auth && npm run dev
+cd services/products && npm run dev
+cd services/orders && npm run dev
+cd services/payments && npm run dev
+cd services/users && npm run dev
 
 # Finally, start frontend in its folder
-cd ..\frontend
+cd frontend
 npm run dev
 ```
 
