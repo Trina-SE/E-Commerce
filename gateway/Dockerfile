@@ -1,12 +1,12 @@
 # syntax=docker/dockerfile:1
-FROM node:18-alpine
+FROM node:18-alpine AS base
 WORKDIR /app
 ENV NODE_ENV=production
 
-COPY services/users/package*.json ./
+COPY gateway/package*.json ./
 RUN npm ci --omit=dev
 
-COPY services/users/src ./src
+COPY gateway/src ./src
 
-EXPOSE 5005
+EXPOSE 5000
 CMD ["node", "src/index.js"]
