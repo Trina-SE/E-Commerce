@@ -63,4 +63,13 @@ export const userService = {
   removeFromWishlist: (userId, productId) => api.delete(`/users/${userId}/wishlist/${productId}`),
 };
 
+// Complaint Services
+export const complaintService = {
+  uploadPdf: (formData) =>
+    api.post('/complaints/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+  list: () => api.get('/complaints'),
+};
+
 export default api;

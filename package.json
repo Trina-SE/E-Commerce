@@ -12,8 +12,9 @@
     "dev:orders": "cd services/orders && npm run dev",
     "dev:payments": "cd services/payments && npm run dev",
     "dev:users": "cd services/users && npm run dev",
+    "dev:complaints": "cd services/complaints && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
-    "install:all": "npm install && cd gateway && npm install && cd ../services/auth && npm install && cd ../products && npm install && cd ../orders && npm install && cd ../payments && npm install && cd ../users && npm install && cd ../../frontend && npm install"
+    "install:all": "npm install && cd gateway && npm install && cd ../services/auth && npm install && cd ../products && npm install && cd ../orders && npm install && cd ../payments && npm install && cd ../users && npm install && cd ../complaints && npm install && cd ../../frontend && npm install"
   },
   "keywords": ["ecommerce", "microservices", "mern"],
   "author": "",

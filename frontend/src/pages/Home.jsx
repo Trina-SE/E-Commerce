@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { productService } from '../services/api';
+import { complaintService, productService } from '../services/api';
 import mockProducts from '../mockProducts';
 import { useCartStore } from '../store/store';
 import { FiShoppingCart, FiHeart } from 'react-icons/fi';
@@ -12,12 +12,21 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [categories, setCategories] = useState([]);
+  const [complaintFile, setComplaintFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState('');
+  const [uploadError, setUploadError] = useState('');
+  const [complaints, setComplaints] = useState([]);
   const { addItem } = useCartStore();
 
   useEffect(() => {
     fetchCategories();
     fetchProducts();
   }, [searchTerm, selectedCategory]);
+
+  useEffect(() => {
+    fetchComplaints();
+  }, []);
 
   const fetchCategories = async () => {
     try {
@@ -78,6 +87,15 @@ export default function Home() {
     }
   };
 
+  const fetchComplaints = async () => {
+    try {
+      const response = await complaintService.list();
+      setComplaints(response.data.files || []);
+    } catch (err) {
+      console.error('Error fetching complaints:', err);
+    }
+  };
+
   const handleAddToCart = (product) => {
     addItem({
       productId: product._id,
@@ -86,6 +104,38 @@ export default function Home() {
       quantity: 1,
     });
     alert('Product added to cart!');
+  };
+
+  const handleComplaintUpload = async (e) => {
+    e.preventDefault();
+    setUploadMessage('');
+    setUploadError('');
+
+    if (!complaintFile) {
+      setUploadError('Please choose a PDF file to upload.');
+      return;
+    }
+
+    if (complaintFile.type !== 'application/pdf') {
+      setUploadError('Only PDF files are allowed.');
+      return;
+    }
+
+    try {
+      setUploading(true);
+      const formData = new FormData();
+      formData.append('file', complaintFile);
+
+      await complaintService.uploadPdf(formData);
+      setUploadMessage('Complaint uploaded successfully.');
+      setComplaintFile(null);
+      fetchComplaints();
+    } catch (err) {
+      const message = err.response?.data?.message || 'Failed to upload complaint.';
+      setUploadError(message);
+    } finally {
+      setUploading(false);
+    }
   };
 
   if (loading) {
@@ -104,6 +154,63 @@ export default function Home() {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--color-bg-light)' }}>
+      <div className="complaint-banner">
+        <div className="container complaint-grid">
+          <div>
+            <p className="complaint-label">Share your feedback</p>
+            <h2 className="complaint-title">Upload your complaint about our website in PDF format</h2>
+            <p className="complaint-subtitle">
+              We store your uploaded PDF securely in MinIO. You can revisit the links below to review your
+              submissions for the next 24 hours.
+            </p>
+          </div>
+
+          <form className="complaint-form" onSubmit={handleComplaintUpload}>
+            <label className="complaint-input">
+              <span>Select PDF</span>
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={(e) => setComplaintFile(e.target.files[0])}
+              />
+            </label>
+
+            <button className="btn btn-primary" type="submit" disabled={uploading}>
+              {uploading ? 'Uploading...' : 'Upload PDF'}
+            </button>
+
+            {uploadMessage && <p className="complaint-success">{uploadMessage}</p>}
+            {uploadError && <p className="complaint-error">{uploadError}</p>}
+          </form>
+        </div>
+      </div>
+
+      {complaints.length > 0 && (
+        <div className="container complaint-list">
+          <div className="card" style={{ padding: '1.5rem' }}>
+            <h3>Recently uploaded complaints</h3>
+            <p className="complaint-subtitle" style={{ marginTop: '0.5rem' }}>
+              These links stay active for 24 hours. Use the MinIO console to manage the files.
+            </p>
+            <ul>
+              {complaints.map((file) => (
+                <li key={file.name} className="complaint-item">
+                  <div>
+                    <p className="complaint-file-name">{file.name}</p>
+                    {file.lastModified && (
+                      <p className="complaint-meta">Updated {new Date(file.lastModified).toLocaleString()}</p>
+                    )}
+                  </div>
+                  <a className="btn btn-secondary" href={file.url} target="_blank" rel="noreferrer">
+                    View PDF
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <div className="hero-section">
         <div className="container">
