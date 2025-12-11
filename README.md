@@ -2,6 +2,16 @@
 
 This repository contains a React frontend, an API gateway, and multiple Node.js microservices (auth, products, orders, payments, users, complaints). The goal of this update is to provide local orchestration, CI, and documentation without changing the business logic or deploying to production yet.
 
+## Architecture overview
+
+- **Frontend**: React SPA built with Vite and served from an Nginx container for production-like runs.
+- **Gateway**: Node.js/Express API gateway that fronts all services and is the single public API surface.
+- **Microservices**: Independent Node.js services (`auth`, `products`, `orders`, `payments`, `users`, `complaints`) each owning their domain logic and connecting to MongoDB. The complaints service also integrates with MinIO for object storage.
+- **Data services**: MongoDB for persistence and MinIO for S3-compatible file storage.
+- **Networking**: Docker Compose defines an internal network where gateway talks to services by name; frontend calls the gateway via `/api`. Ports exposed to localhost are limited to frontend (8080), gateway (5000), MongoDB (27017), and MinIO (9000/9001).
+- **Configuration**: All runtime configuration is driven by environment variables surfaced through `.env` and service-specific `.env.example` files.
+- **CI/CD (no deploy yet)**: GitHub Actions `app-ci.yml` validates installs/tests/builds; `docker-build.yml` ensures Dockerfiles remain buildable. No deploy steps run yet.
+
 ## Environment setup
 
 1. Copy `.env.example` to `.env` and adjust values as needed. Never commit secrets.
