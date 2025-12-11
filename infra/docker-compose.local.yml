@@ -1,0 +1,135 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:6
+    container_name: ecommerce-mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: ecommerce
+    volumes:
+      - mongo_data:/data/db
+
+  minio:
+    image: minio/minio:RELEASE.2024-09-22T00-33-43Z
+    container_name: ecommerce-minio
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+  gateway:
+    build:
+      context: ..
+      dockerfile: gateway/Dockerfile
+    env_file:
+      - ../.env
+    environment:
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/ecommerce}
+      AUTH_SERVICE_HOST: auth-service
+      PRODUCTS_SERVICE_HOST: products-service
+      ORDERS_SERVICE_HOST: orders-service
+      PAYMENTS_SERVICE_HOST: payments-service
+      USERS_SERVICE_HOST: users-service
+      COMPLAINTS_SERVICE_HOST: complaints-service
+    ports:
+      - "5000:5000"
+    depends_on:
+      - auth-service
+      - products-service
+      - orders-service
+      - payments-service
+      - users-service
+      - complaints-service
+
+  auth-service:
+    build:
+      context: ..
+      dockerfile: services/auth/Dockerfile
+    env_file:
+      - ../.env
+    environment:
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/ecommerce}
+    depends_on:
+      - mongo
+
+  products-service:
+    build:
+      context: ..
+      dockerfile: services/products/Dockerfile
+    env_file:
+      - ../.env
+    environment:
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/ecommerce}
+    depends_on:
+      - mongo
+
+  orders-service:
+    build:
+      context: ..
+      dockerfile: services/orders/Dockerfile
+    env_file:
+      - ../.env
+    environment:
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/ecommerce}
+    depends_on:
+      - mongo
+
+  payments-service:
+    build:
+      context: ..
+      dockerfile: services/payments/Dockerfile
+    env_file:
+      - ../.env
+    environment:
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/ecommerce}
+    depends_on:
+      - mongo
+
+  users-service:
+    build:
+      context: ..
+      dockerfile: services/users/Dockerfile
+    env_file:
+      - ../.env
+    environment:
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/ecommerce}
+    depends_on:
+      - mongo
+
+  complaints-service:
+    build:
+      context: ..
+      dockerfile: services/complaints/Dockerfile
+    env_file:
+      - ../.env
+    environment:
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/ecommerce}
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_USE_SSL: "false"
+    depends_on:
+      - minio
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://gateway:5000/api}
+    env_file:
+      - ../.env
+    ports:
+      - "8080:80"
+    depends_on:
+      - gateway
+
+volumes:
+  mongo_data:
+  minio_data:

@@ -1,0 +1,30 @@
+name: Docker Build Validation
+
+on:
+  push:
+    branches: [dev, testing, staging, release, main]
+
+jobs:
+  build-images:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build gateway image
+        run: docker build -f gateway/Dockerfile -t ecommerce-gateway:ci .
+
+      - name: Build service images
+        run: |
+          docker build -f services/auth/Dockerfile -t ecommerce-auth:ci .
+          docker build -f services/products/Dockerfile -t ecommerce-products:ci .
+          docker build -f services/orders/Dockerfile -t ecommerce-orders:ci .
+          docker build -f services/payments/Dockerfile -t ecommerce-payments:ci .
+          docker build -f services/users/Dockerfile -t ecommerce-users:ci .
+          docker build -f services/complaints/Dockerfile -t ecommerce-complaints:ci .
+
+      - name: Build frontend image
+        run: docker build -f frontend/Dockerfile -t ecommerce-frontend:ci --build-arg VITE_API_URL=http://gateway:5000/api .

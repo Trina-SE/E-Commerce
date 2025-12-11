@@ -3,10 +3,10 @@ FROM node:18-alpine
 WORKDIR /app
 ENV NODE_ENV=production
 
-COPY services/users/package*.json ./
+COPY services/products/package*.json ./
 RUN npm ci --omit=dev
 
-COPY services/users/src ./src
+COPY services/products/src ./src
 
-EXPOSE 5005
+EXPOSE 5002
 CMD ["node", "src/index.js"]
