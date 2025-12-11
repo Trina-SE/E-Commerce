@@ -4,7 +4,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 COPY services/orders/package*.json ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 COPY services/orders/src ./src
 
