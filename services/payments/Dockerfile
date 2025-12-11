@@ -3,10 +3,10 @@ FROM node:18-alpine
 WORKDIR /app
 ENV NODE_ENV=production
 
-COPY services/users/package*.json ./
+COPY services/payments/package*.json ./
 RUN npm install --omit=dev
 
-COPY services/users/src ./src
+COPY services/payments/src ./src
 
-EXPOSE 5005
+EXPOSE 5004
 CMD ["node", "src/index.js"]
