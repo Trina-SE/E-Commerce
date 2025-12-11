@@ -13,11 +13,12 @@ app.use(cors());
 app.use(express.json());
 
 // Service URLs
-const AUTH_SERVICE = 'http://localhost:5001';
-const PRODUCTS_SERVICE = 'http://localhost:5002';
-const ORDERS_SERVICE = 'http://localhost:5003';
-const PAYMENTS_SERVICE = 'http://localhost:5004';
-const USERS_SERVICE = 'http://localhost:5005';
+const AUTH_SERVICE = `http://${process.env.AUTH_SERVICE_HOST || 'localhost'}:${process.env.AUTH_SERVICE_PORT || 5001}`;
+const PRODUCTS_SERVICE = `http://${process.env.PRODUCTS_SERVICE_HOST || 'localhost'}:${process.env.PRODUCTS_SERVICE_PORT || 5002}`;
+const ORDERS_SERVICE = `http://${process.env.ORDERS_SERVICE_HOST || 'localhost'}:${process.env.ORDERS_SERVICE_PORT || 5003}`;
+const PAYMENTS_SERVICE = `http://${process.env.PAYMENTS_SERVICE_HOST || 'localhost'}:${process.env.PAYMENTS_SERVICE_PORT || 5004}`;
+const USERS_SERVICE = `http://${process.env.USERS_SERVICE_HOST || 'localhost'}:${process.env.USERS_SERVICE_PORT || 5005}`;
+const COMPLAINTS_SERVICE = `http://${process.env.COMPLAINTS_SERVICE_HOST || 'localhost'}:${process.env.COMPLAINTS_SERVICE_PORT || 5006}`;
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -47,6 +48,11 @@ app.use('/api/payments', httpProxy(PAYMENTS_SERVICE, {
 // Users Service Routes
 app.use('/api/users', httpProxy(USERS_SERVICE, {
   proxyReqPathResolver: (req) => `/api/users${req.url}`,
+}));
+
+// Complaints Service Routes
+app.use('/api/complaints', httpProxy(COMPLAINTS_SERVICE, {
+  proxyReqPathResolver: (req) => `/api/complaints${req.url}`,
 }));
 
 // 404 Handler
